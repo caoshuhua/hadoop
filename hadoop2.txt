@@ -1,0 +1,491 @@
+﻿val file = sc.textFile("hdfs://master:4001/input/wordcount.txt")
+
+
+hadoop2环境搭建：
+
+hadoop dfsadmin -report 
+
+
+hdfs namenode -format -clusterid c1
+hdfs dfs -put core-site.xml hdfs://master:4001/
+
+<property>
+    <name>fs.viewfs.mounttable.default.link./ns1</name>
+	<value>hdfs://master:4001</value>
+</property>
+<property>
+    <name>fs.viewfs.mounttable.default.link./ns2</name>
+	<value>hdfs://slave1:4001</value>
+</property>
+
+
+hdfs dfs -ls viewfs:///
+
+hdfs dfs -ls viewfs:///ns1/
+hdfs dfs -ls viewfs:///ns2/
+
+viewfs://ns/
+
+default -> ns/
+
+
+hdfs dfs -ls /
+
+hdfs dfs -ls /ns1
+
+ns1 -> etc
+
+hdfs dfs -mkdir hdfs://hadoop1:4001/etc
+hdfs dfs -put core-site.xml /etc
+hdfs dfs -ls hdfs://hadoop1:4001/etc
+
+cat core-site.xml
+
+scp a.xml slave1:/usr/local/hadoop/tmp/journal
+
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="cmt.xml"/>
+	 <property>
+	     <name>fs.default.name</name>
+		 <value>viewfs://ns/</value>
+	 </property>
+</configuration>
+
+hadoop ha:
+
+banggo828
+
+
+
+hdfs haadmin -getServiceState ns2
+
+hive --service metastore
+
+bin/hive --service hiveserver 10000
+nohup ./bin/hive --service hiveserver 10000 >> hiveserver.log 2>&1 & 
+
+
+hive --service metastore , 用这条命令来启动hive。
+
+server.1=master:2888:3888
+server.2=slave1:2888:3888
+server.3=slave2:2888:3888
+
+export ZOOKEEPER_HOME=/usr/local/zookeeper
+export PATH=$ZOOKEEPER_HOME/bin:$PATH
+
+
+  <property>   
+      <name>ha.zookeeper.quorum</name>
+      <value>master:2181,slave1:2181,slave2:2181</value>
+  </property>
+  
+  <property>   
+      <name>dfs.ha.automatic-failover.enabled.mycluster</name>
+      <value>true</value>
+  </property>
+  
+ 
+
+
+netstat -tln | grep 8060
+
+
+
+bin/hdfs zkfc -formatZK
+sbin/hadoop-daemon.sh start zkfc
+
+./configure --prefix=/usr/local/mysql          //指定mysql安装路径
+--localstatedir=/data/mysql_db              //指定数据库的库文件存放路径
+--with-mysqld-ldflags=-all-static          //以静态方式编译服务器端
+--with-client-ldflags=-all-static          //以静态方式编译客户端
+--with-extra-charsets=utf8,gbk        //添加utf8、gbk字符集
+--with-plugins=innobase,myisam          //添加mysql存储引擎
+--with-server-suffix=-community        //为mysqld版本字符串添加后缀
+--with-unix-socket-path=/usr/local/mysql/sock/mysql.sock
+--enable-thread-safe-client                //以线程方式编译客户端，提高性能
+--enable-assembler                            //使用汇编，提高性能
+--enable-profiling                                //启用profile功能
+--without-embedded-server              //去除embedded
+--without-debug                                //去除debug模式，提高性能
+--without-bench                                //去除bench模式，提高性能
+
+
+datadir=/usr/local/mysql/data
+default-storage-engine=MyISAM
+
+log-error =/usr/local/mysql/data/error.log
+pid-file = /usr/local/mysql/data/mysql.pid
+user = mysql
+tmpdir = /tmp
+
+
+/usr/local/mysql/scripts/mysql_install_db --user=mysql --basedir=/usr/local/mysql --datadir=/usr/local/mysql/data &
+
+
+
+<configuration>
+
+<property>
+<name>dfs.replication</name>
+<value>2</value>
+</property>
+
+<property>
+<name>dfs.nameservices</name>
+<value>cluster1</value>
+</property>
+
+<property>
+<name>dfs.ha.namenodes.cluster1</name>
+<value>master,slave1</value>
+</property>
+
+<property>
+<name>dfs.namenode.rpc-address.cluster1.master</name>
+<value>master:9000</value>
+</property>
+
+<property>
+<name>dfs.namenode.rpc-address.cluster1.slave1</name>
+<value>slave1:9000</value>
+</property>
+
+<property>
+<name>dfs.namenode.http-address.cluster1.master</name>
+<value>master:50070</value>
+</property>
+
+<property>
+<name>dfs.namenode.http-address.cluster1.slave1</name>
+<value>slave1:50070</value>
+</property>
+
+<property>
+<name>dfs.namenode.shared.edits.dir</name>
+<value>qjournal://master:8485;slave1:8485/cluster1</value>
+</property>
+
+<property>
+<name>dfs.client.failover.proxy.provider.cluster1</name>
+<value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+</property>
+
+<property>
+<name>dfs.ha.fencing.methods</name>
+<value>sshfence</value>
+</property>
+
+<property>
+<name>dfs.ha.fencing.ssh.private-key-files</name>
+<value>/root/.ssh/id_rsa</value>
+</property>
+
+<property>
+<name>dfs.journalnode.edits.dir</name>
+<value>/usr/local/hadoop/tmp/journal</value>
+</property>
+
+</configuration>
+
+
+
+
+<property>
+<name>javax.jdo.option.ConnectionURL</name>
+<value>jdbc:mysql://c1:3306/hive_metadata?createDatabaseIfNotExist=true</value>
+<description>JDBC connect string for a JDBC metastore</description>
+</property>
+
+<property>
+<name>javax.jdo.option.ConnectionDriverName</name>
+<value>com.mysql.jdbc.Driver</value>
+<description>Driver class name for a JDBC metastore</description>
+</property>
+
+<property>
+<name>javax.jdo.option.ConnectionUserName</name>
+<value>hive</value>
+<description>username to use against metastore database</description>
+</property>
+
+<property>
+<name>javax.jdo.option.ConnectionPassword</name>
+<value>hive</value>
+<description>password to use against metastore database</description>
+</property>
+
+<property>
+<name>hive.metastore.warehouse.dir</name>
+<value>/user/hive/warehouse</value>
+<description>location of default database for the warehouse</description>
+</property>
+
+
+1，初始化zookeeper
+在hadoop1上的hadoop的目录执行：
+bin/hdfs zkfc -formatZK
+
+2,启动JournalNode,NameNode和DataNode
+hadoop-daemon.sh  start  journalnode
+ hadoop-daemon.sh  start namenode
+hadoop-daemons.sh  start datanode 
+ 
+3，各个namenode启动ZKFC
+sbin/hadoop-daemon.sh start zkfc
+
+
+在hadoop100、hadoop101、hadoop102上，执行命令 hadoop-daemon.sh  start  journalnode
+
+
+
+bin/hive --service metastore & Starting Hive Metastore Server
+
+
+hive --hiveconf  hive.root.logger=DEBUG,console
+
+yum install -y ntpdate
+ntpdate ntp.sjtu.edu.cn
+
+/root/hadoop/share/hadoop/mapreduce
+hadoop jar hadoop-mapreduce-examples-2.2.0.jar wordcount /input /output
+
+cd ../..
+find . -name *.jar
+
+ll ls
+
+hive:
+hive -e 'show databases'
+hive>  dfs -ls /
+
+
+chmod 700 /etc/profile
+
+~/.bashrc
+
+
+
+common.loader=${catalina.base}/lib,${catalina.base}/lib/*.jar,${catalina.home}/lib,${catalina.home}/lib/*.jar,${catalina.home}/../server/lib/*.jar,/home/dev/hadoop/share/hadoop/common/*.jar,/home/dev/hadoop/share/hadoop/common/lib/*.jar,/home/dev/hadoop/share/hadoop/yarn/*.jar,/home/dev/hadoop/share/hadoop/hdfs/*.jar,/home/dev/hadoop/share/hadoop/mapreduce/*.jar
+
+
+common.loader=${catalina.base}/lib,${catalina.base}/lib/*.jar,${catalina.home}/lib,${catalina.home}/lib/*.jar,${catalina.home}/../server/lib/*.jar,/usr/local/hadoop/share/hadoop/common/*.jar,/usr/local/hadoop/share/hadoop/common/lib/*.jar,/usr/local/hadoop/share/hadoop/yarn/*.jar,/usr/local/hadoop/share/hadoop/hdfs/*.jar,/usr/local/hadoop/share/hadoop/mapreduce/*.jar
+
+org.apache.sqoop.submission.engine.mapreduce.configuration.directory=/usr/local/hadoop/etc/hadoop
+
+
+create table ar_disp_std(id int, squ_mtr_eff string, area string) row format delimited fields terminated by ',';
+
+bin/sqoop import --connect jdbc:oracle:thin:@192.168.149.114:1521:MBTESTDB --username MTSBWTST --password MTSBWTST --table AR_DISP_STD --columns "ID,SQU_MTR_EFF,AREA" --fields-terminated-by ',' --null-string '' --hive-import -m 2
+
+bin/sqoop import --connect jdbc:oracle:thin:@192.168.149.114:1521:MBTESTDB --username MTSBWTST --password MTSBWTST --table A --columns "ID,CODE,NAME" --fields-terminated-by ','  --null-string '' --hive-import -m 2
+
+bin/sqoop import --connect jdbc:oracle:thin:@192.168.149.114:1521:MBTESTDB --username MTSBWTST --password MTSBWTST -target-dir '/a' -m 1 --table AR_DISP_STD --columns "ID,SQU_MTR_EFF,AREA" --fields-terminated-by '\t'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5-01-05 06:17:04,855 INFO org.apache.hadoop.hdfs.qjournal.client.QuorumJournalManager: Waited 7331 ms (timeout=20000 ms) for a response for sendEdits. No responses yet.
+2015-01-05 06:17:06,513 INFO org.apache.hadoop.hdfs.qjournal.client.QuorumJournalManager: Waited 12732 ms (timeout=20000 ms) for a response for sendEdits. No responses yet.
+2015-01-05 06:17:06,811 WARN org.apache.hadoop.hdfs.qjournal.client.QuorumJournalManager: Took 11958ms to send a batch of 1 edits (13 bytes) to remote journal 10.8.39.31:8485
+2015-01-05 06:17:06,811 WARN org.apache.hadoop.hdfs.qjournal.client.QuorumJournalManager: Took 12871ms to send a batch of 1 edits (13 bytes) to remote journal 10.8.39.30:8485
+2015-01-05 06:17:07,030 INFO org.apache.hadoop.hdfs.server.namenode.FSEditLog: Number of transactions: 4 Total time for transactions(ms): 2213 Number of transactions batched in Syncs: 0 Number of syncs: 3 SyncTimes(ms): 13693 187 
+2015-01-05 06:17:12,149 INFO org.apache.hadoop.hdfs.server.namenode.FileJournalManager: Finalizing edits file /usr/local/hadoop/dfs/name/current/edits_inprogress_0000000000000000659 -> /usr/local/hadoop/dfs/name/current/edits_0000000000000000659-0000000000000000662
+2015-01-05 06:17:12,665 INFO org.apache.hadoop.hdfs.server.namenode.FSEditLog: Starting log segment at 663
+2015-01-05 06:17:19,653 INFO org.apache.hadoop.hdfs.qjournal.client.QuorumJournalManager: Waited 6028 ms (timeout=20000 ms) for a response for startLogSegment(663). Succeeded so far: [10.8.39.31:8485]. Exceptions so far: [10.8.39.32:8485: /usr/local/hadoop/journal/mycluster/in_use.lock (Permission denied)
+        at java.io.RandomAccessFile.open(Native Method)
+        at java.io.RandomAccessFile.<init>(RandomAccessFile.java:241)
+        at org.apache.hadoop.hdfs.server.common.Storage$StorageDirectory.tryLock(Storage.java:659)
+        at org.apache.hadoop.hdfs.server.common.Storage$StorageDirectory.lock(Storage.java:632)
+        at org.apache.hadoop.hdfs.server.common.Storage$StorageDirectory.analyzeStorage(Storage.java:460)
+        at org.apache.hadoop.hdfs.qjournal.server.JNStorage.analyzeStorage(JNStorage.java:193)
+        at org.apache.hadoop.hdfs.qjournal.server.JNStorage.<init>(JNStorage.java:73)
+        at org.apache.hadoop.hdfs.qjournal.server.Journal.<init>(Journal.java:140)
+        at org.apache.hadoop.hdfs.qjournal.server.JournalNode.getOrCreateJournal(JournalNode.java:83)
+        at org.apache.hadoop.hdfs.qjournal.server.JournalNodeRpcServer.startLogSegment(JournalNodeRpcServer.java:158)
+        at org.apache.hadoop.hdfs.qjournal.protocolPB.QJournalProtocolServerSideTranslatorPB.startLogSegment(QJournalProtocolServerSideTranslatorPB.java:165)
+        at org.apache.hadoop.hdfs.qjournal.protocol.QJournalProtocolProtos$QJournalProtocolService$2.callBlockingMethod(QJournalProtocolProtos.java:17447)
+        at org.apache.hadoop.ipc.ProtobufRpcEngine$Server$ProtoBufRpcInvoker.call(ProtobufRpcEngine.java:585)
+        at org.apache.hadoop.ipc.RPC$Server.call(RPC.java:928)
+        at org.apache.hadoop.ipc.Server$Handler$1.run(Server.java:2048)
+        at org.apache.hadoop.ipc.Server$Handler$1.run(Server.java:2044)
+        at java.security.AccessController.doPrivileged(Native Method)
+        at javax.security.auth.Subject.doAs(Subject.java:415)
+        at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1491)
+        at org.apache.hadoop.ipc.Server$Handler.run(Server.java:2042)
+
+
+
+2015-01-05 07:44:18,258 INFO org.mortbay.log: Started SelectChannelConnector@master:8088
+2015-01-05 07:44:18,259 INFO org.apache.hadoop.yarn.webapp.WebApps: Web app /cluster started at 8088
+2015-01-05 07:44:20,142 INFO org.apache.hadoop.yarn.webapp.WebApps: Registered webapp guice modules
+2015-01-05 07:44:20,144 INFO org.apache.hadoop.security.token.delegation.AbstractDelegationTokenSecretManager: Updating the current master key for generating delegation tokens
+2015-01-05 07:44:20,144 INFO org.apache.hadoop.yarn.server.resourcemanager.security.RMDelegationTokenSecretManager: storing master key with keyID 1
+2015-01-05 07:44:20,145 INFO org.apache.hadoop.security.token.delegation.AbstractDelegationTokenSecretManager: Starting expired delegation token remover thread, tokenRemoverScanInterval=60 min(s)
+2015-01-05 07:44:20,151 INFO org.apache.hadoop.security.token.delegation.AbstractDelegationTokenSecretManager: Updating the current master key for generating delegation tokens
+2015-01-05 07:44:20,151 INFO org.apache.hadoop.yarn.server.resourcemanager.security.RMDelegationTokenSecretManager: storing master key with keyID 2
+2015-01-05 07:44:20,190 INFO org.apache.hadoop.ipc.Server: Starting Socket Reader #1 for port 8031
+2015-01-05 07:44:20,228 INFO org.apache.hadoop.yarn.factories.impl.pb.RpcServerFactoryPBImpl: Adding protocol org.apache.hadoop.yarn.server.api.ResourceTrackerPB to the server
+2015-01-05 07:44:20,229 INFO org.apache.hadoop.ipc.Server: IPC Server Responder: starting
+2015-01-05 07:44:20,230 INFO org.apache.hadoop.ipc.Server: IPC Server listener on 8031: starting
+2015-01-05 07:44:20,265 INFO org.apache.hadoop.ipc.Server: Starting Socket Reader #1 for port 8030
+2015-01-05 07:44:20,271 INFO org.apache.hadoop.yarn.factories.impl.pb.RpcServerFactoryPBImpl: Adding protocol org.apache.hadoop.yarn.api.ApplicationMasterProtocolPB to the server
+2015-01-05 07:44:20,274 INFO org.apache.hadoop.ipc.Server: IPC Server Responder: starting
+2015-01-05 07:44:20,289 INFO org.apache.hadoop.ipc.Server: IPC Server listener on 8030: starting
+2015-01-05 07:44:20,317 INFO org.apache.hadoop.yarn.factories.impl.pb.RpcServerFactoryPBImpl: Adding protocol org.apache.hadoop.yarn.api.ApplicationClientProtocolPB to the server
+2015-01-05 07:44:20,317 INFO org.apache.hadoop.ipc.Server: Starting Socket Reader #1 for port 8032
+2015-01-05 07:44:20,317 INFO org.apache.hadoop.ipc.Server: IPC Server Responder: starting
+2015-01-05 07:44:20,317 INFO org.apache.hadoop.ipc.Server: IPC Server listener on 8032: starting
+2015-01-05 07:44:20,348 INFO org.apache.hadoop.yarn.factories.impl.pb.RpcServerFactoryPBImpl: Adding protocol org.apache.hadoop.yarn.server.api.ResourceManagerAdministrationProtocolPB to the server
+2015-01-05 07:44:20,348 INFO org.apache.hadoop.ipc.Server: Starting Socket Reader #1 for port 8033
+2015-01-05 07:44:20,348 INFO org.apache.hadoop.ipc.Server: IPC Server Responder: starting
+2015-01-05 07:44:20,348 INFO org.apache.hadoop.ipc.Server: IPC Server listener on 8033: starting
+2015-01-05 07:44:23,781 INFO org.apache.hadoop.yarn.util.RackResolver: Resolved slave1 to /default-rack
+2015-01-05 07:44:23,811 INFO org.apache.hadoop.yarn.server.resourcemanager.ResourceTrackerService: NodeManager from node slave1(cmPort: 49661 httpPort: 8042) registered with capability: <memory:8192, vCores:8>, assigned nodeId slave1:49661
+2015-01-05 07:44:23,817 INFO org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeImpl: slave1:49661 Node Transitioned from NEW to RUNNING
+2015-01-05 07:44:23,823 INFO org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler: Added node slave1:49661 clusterResource: <memory:8192, vCores:8>
+2015-01-05 07:44:24,704 INFO org.apache.hadoop.yarn.util.RackResolver: Resolved slave2 to /default-rack
+2015-01-05 07:44:24,704 INFO org.apache.hadoop.yarn.server.resourcemanager.ResourceTrackerService: NodeManager from node slave2(cmPort: 52482 httpPort: 8042) registered with capability: <memory:8192, vCores:8>, assigned nodeId slave2:52482
+2015-01-05 07:44:24,704 INFO org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeImpl: slave2:52482 Node Transitioned from NEW to RUNNING
+2015-01-05 07:44:24,705 INFO org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler: Added node slave2:52482 clusterResource: <memory:16384, vCores:16>
+2015-01-05 07:44:31,625 INFO org.apache.hadoop.yarn.util.RackResolver: Resolved master to /default-rack
+2015-01-05 07:44:31,625 INFO org.apache.hadoop.yarn.server.resourcemanager.ResourceTrackerService: NodeManager from node master(cmPort: 41649 httpPort: 8042) registered with capability: <memory:8192, vCores:8>, assigned nodeId master:41649
+2015-01-05 07:44:31,626 INFO org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeImpl: master:41649 Node Transitioned from NEW to RUNNING
+2015-01-05 07:44:31,626 INFO org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler: Added node master:41649 clusterResource: <memory:24576, vCores:24>
+2015-01-05 07:47:38,073 INFO org.apache.hadoop.yarn.server.resourcemanager.ClientRMService: Allocated new applicationId: 1
+2015-01-05 07:47:43,971 INFO org.apache.hadoop.yarn.server.resourcemanager.ClientRMService: Application with id 1 submitted by user hadoop
+2015-01-05 07:47:44,013 INFO org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppImpl: Storing application with id application_1420472650484_0001
+2015-01-05 07:47:44,014 INFO org.apache.hadoop.yarn.server.resourcemanager.RMAuditLogger: USER=hadoop   IP=10.8.39.30   OPERATION=Submit Application Request    TARGET=ClientRMService RESULT=SUCCESS  APPID=application_1420472650484_0001
+2015-01-05 07:47:44,017 INFO org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppImpl: application_1420472650484_0001 State change from NEW to NEW_SAVING
+2015-01-05 07:47:44,024 INFO org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore: Storing info for app: application_1420472650484_0001
+2015-01-05 07:47:44,071 INFO org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppImpl: application_1420472650484_0001 State change from NEW_SAVING to SUBMITTED
+2015-01-05 07:47:44,083 INFO org.apache.hadoop.yarn.server.resourcemanager.ApplicationMasterService: Registering app attempt : appattempt_1420472650484_0001_000001
+2015-01-05 07:47:44,154 INFO org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptImpl: appattempt_1420472650484_0001_000001 State change from NEW to SUBMITTED
+2015-01-05 07:47:44,225 INFO org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.LeafQueue: Application application_1420472650484_0001 from user: hadoop activated in queue: default
+2015-01-05 07:47:44,225 INFO org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.LeafQueue: Application added - appId: application_1420472650484_0001 user: org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.LeafQueue$User@6ec4786e, leaf-queue: default #user-pending-applications: 0 #user-active-applications: 1 #queue-pending-applications: 0 #queue-active-applications: 1
+2015-01-05 07:47:44,225 INFO org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.ParentQueue: Application added - appId: application_1420472650484_0001 user: hadoop leaf-queue of parent: root #applications: 1
+2015-01-05 07:47:44,225 INFO org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler: Application Submission: appattempt_1420472650484_0001_000001, user: hadoop queue: default: capacity=1.0, absoluteCapacity=1.0, usedResources=<memory:0, vCores:0>usedCapacity=0.0, absoluteUsedCapacity=0.0, numApps=1, numContainers=0, currently active: 1
+2015-01-05 07:47:44,226 INFO org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptImpl: appattempt_1420472650484_0001_000001 State change from SUBMITTED to SCHEDULED
+2015-01-05 07:47:44,226 INFO org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppImpl: application_1420472650484_0001 State change from SUBMITTED to ACCEPTED
+2015-01-05 07:47:44,270 INFO org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainerImpl: container_1420472650484_0001_01_000001 Container Transitioned from NEW to ALLOCATED
+2015-01-05 07:47:44,270 INFO org.apache.hadoop.yarn.server.resourcemanager.RMAuditLogger: USER=hadoop   OPERATION=AM Allocated Container        TARGET=SchedulerApp   RESULT=SUCCESS   APPID=application_1420472650484_0001    CONTAINERID=container_1420472650484_0001_01_000001
+2015-01-05 07:47:44,270 INFO org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.fica.FiCaSchedulerNode: Assigned container container_1420472650484_0001_01_000001 of capacity <memory:2048, vCores:1> on host master:41649, which currently has 1 containers, <memory:2048, vCores:1> used and <memory:6144, vCores:7> available
+2015-01-05 07:47:44,271 INFO org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.LeafQueue: assignedContainer application=application_1420472650484_0001 container=Container: [ContainerId: container_1420472650484_0001_01_000001, NodeId: master:41649, NodeHttpAddress: master:8042, Resource: <memory:2048, vCores:1>, Priority: 0, Token: Token { kind: ContainerToken, service: 10.8.39.30:41649 }, ] containerId=container_1420472650484_0001_01_000001 queue=default: capacity=1.0, absoluteCapacity=1.0, usedResources=<memory:0, vCores:0>usedCapacity=0.0, absoluteUsedCapacity=0.0, numApps=1, numContainers=0 usedCapacity=0.0 absoluteUsedCapacity=0.0 used=<memory:0, vCores:0> cluster=<memory:24576, vCores:24>
+2015-01-05 07:47:44,272 INFO org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainerImpl: container_1420472650484_0001_01_000001 Container Transitioned from ALLOCATED to ACQUIRED
+2015-01-05 07:47:44,274 INFO org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.ParentQueue: Re-sorting assigned queue: root.default stats: default: capacity=1.0, absoluteCapacity=1.0, usedResources=<memory:2048, vCores:1>usedCapacity=0.083333336, absoluteUsedCapacity=0.083333336, numApps=1, numContainers=1
+2015-01-05 07:47:44,274 INFO org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.ParentQueue: assignedContainer queue=root usedCapacity=0.083333336 absoluteUsedCapacity=0.083333336 used=<memory:2048, vCores:1> cluster=<memory:24576, vCores:24>
+2015-01-05 07:47:44,275 INFO org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptImpl: Storing attempt: AppId: application_1420472650484_0001 AttemptId: appattempt_1420472650484_0001_000001 MasterContainer: Container: [ContainerId: container_1420472650484_0001_01_000001, NodeId: master:41649, NodeHttpAddress: master:8042, Resource: <memory:2048, vCores:1>, Priority: 0, Token: Token { kind: ContainerToken, service: 10.8.39.30:41649 }, ]
+2015-01-05 07:47:44,289 INFO org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptImpl: appattempt_1420472650484_0001_000001 State change from SCHEDULED to ALLOCATED_SAVING
+2015-01-05 07:47:44,302 INFO org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore: Storing info for attempt: appattempt_1420472650484_0001_000001
+2015-01-05 07:47:44,309 INFO org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptImpl: appattempt_1420472650484_0001_000001 State change from ALLOCATED_SAVING to ALLOCATED
+2015-01-05 07:47:44,316 INFO org.apache.hadoop.yarn.server.resourcemanager.amlauncher.AMLauncher: Launching masterappattempt_1420472650484_0001_000001
+2015-01-05 07:47:45,567 INFO org.apache.hadoop.yarn.server.resourcemanager.amlauncher.AMLauncher: Setting up container Container: [ContainerId: container_1420472650484_0001_01_000001, NodeId: master:41649, NodeHttpAddress: master:8042, Resource: <memory:2048, vCores:1>, Priority: 0, Token: Token { kind: ContainerToken, service: 10.8.39.30:41649 }, ] for AM appattempt_1420472650484_0001_000001
+2015-01-05 07:47:45,568 INFO org.apache.hadoop.yarn.server.resourcemanager.amlauncher.AMLauncher: Command to launch container container_1420472650484_0001_01_000001 : $JAVA_HOME/bin/java -Dlog4j.configuration=container-log4j.properties -Dyarn.app.container.log.dir=<LOG_DIR> -Dyarn.app.container.log.filesize=0 -Dhadoop.root.logger=INFO,CLA  -Xmx1024m org.apache.hadoop.mapreduce.v2.app.MRAppMaster 1><LOG_DIR>/stdout 2><LOG_DIR>/stderr 
+2015-01-05 07:47:46,183 INFO org.apache.hadoop.yarn.server.resourcemanager.amlauncher.AMLauncher: Done launching container Container: [ContainerId: container_1420472650484_0001_01_000001, NodeId: master:41649, NodeHttpAddress: master:8042, Resource: <memory:2048, vCores:1>, Priority: 0, Token: Token { kind: ContainerToken, service: 10.8.39.30:41649 }, ] for AM appattempt_1420472650484_0001_000001
+2015-01-05 07:47:46,183 INFO org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptImpl: appattempt_1420472650484_0001_000001 State change from ALLOCATED to LAUNCHED
+2015-01-05 07:47:46,247 INFO org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainerImpl: container_1420472650484_0001_01_000001 Container Transitioned from ACQUIRED to RUNNING
+
+
+2015-01-05 07:57:37,403 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Start loading edits file http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1499&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://master:8480/getJournal?jid=mycluster&segmentTxId=1499&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491
+2015-01-05 07:57:37,403 INFO org.apache.hadoop.hdfs.server.namenode.EditLogInputStream: Fast-forwarding stream 'http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1499&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://master:8480/getJournal?jid=mycluster&segmentTxId=1499&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491' to transaction ID 648
+2015-01-05 07:57:37,403 INFO org.apache.hadoop.hdfs.server.namenode.EditLogInputStream: Fast-forwarding stream 'http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1499&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491' to transaction ID 648
+2015-01-05 07:57:37,425 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Edits file http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1499&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://master:8480/getJournal?jid=mycluster&segmentTxId=1499&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491 of size 30 edits # 2 loaded in 0 seconds
+2015-01-05 07:57:37,425 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Reading org.apache.hadoop.hdfs.server.namenode.RedundantEditLogInputStream@5e472452 expecting start txid #1501
+2015-01-05 07:57:37,425 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Start loading edits file http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1501&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://master:8480/getJournal?jid=mycluster&segmentTxId=1501&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491
+2015-01-05 07:57:37,425 INFO org.apache.hadoop.hdfs.server.namenode.EditLogInputStream: Fast-forwarding stream 'http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1501&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://master:8480/getJournal?jid=mycluster&segmentTxId=1501&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491' to transaction ID 648
+2015-01-05 07:57:37,425 INFO org.apache.hadoop.hdfs.server.namenode.EditLogInputStream: Fast-forwarding stream 'http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1501&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491' to transaction ID 648
+2015-01-05 07:57:37,429 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Edits file http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1501&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://master:8480/getJournal?jid=mycluster&segmentTxId=1501&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491 of size 259 edits # 6 loaded in 0 seconds
+2015-01-05 07:57:37,429 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Reading org.apache.hadoop.hdfs.server.namenode.RedundantEditLogInputStream@10a1b3d9 expecting start txid #1507
+2015-01-05 07:57:37,429 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Start loading edits file http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1507&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://master:8480/getJournal?jid=mycluster&segmentTxId=1507&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491
+2015-01-05 07:57:37,429 INFO org.apache.hadoop.hdfs.server.namenode.EditLogInputStream: Fast-forwarding stream 'http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1507&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://master:8480/getJournal?jid=mycluster&segmentTxId=1507&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491' to transaction ID 648
+2015-01-05 07:57:37,429 INFO org.apache.hadoop.hdfs.server.namenode.EditLogInputStream: Fast-forwarding stream 'http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1507&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491' to transaction ID 648
+2015-01-05 07:57:37,435 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Edits file http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1507&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://master:8480/getJournal?jid=mycluster&segmentTxId=1507&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491 of size 30 edits # 2 loaded in 0 seconds
+2015-01-05 07:57:37,435 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Reading org.apache.hadoop.hdfs.server.namenode.RedundantEditLogInputStream@68267416 expecting start txid #1509
+2015-01-05 07:57:37,435 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Start loading edits file http://master:8480/getJournal?jid=mycluster&segmentTxId=1509&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1509&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491
+2015-01-05 07:57:37,435 INFO org.apache.hadoop.hdfs.server.namenode.EditLogInputStream: Fast-forwarding stream 'http://master:8480/getJournal?jid=mycluster&segmentTxId=1509&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1509&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491' to transaction ID 648
+2015-01-05 07:57:37,435 INFO org.apache.hadoop.hdfs.server.namenode.EditLogInputStream: Fast-forwarding stream 'http://master:8480/getJournal?jid=mycluster&segmentTxId=1509&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491' to transaction ID 648
+2015-01-05 07:57:37,478 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Edits file http://master:8480/getJournal?jid=mycluster&segmentTxId=1509&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1509&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491 of size 30 edits # 2 loaded in 0 seconds
+2015-01-05 07:57:37,478 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Reading org.apache.hadoop.hdfs.server.namenode.RedundantEditLogInputStream@348f85c5 expecting start txid #1511
+2015-01-05 07:57:37,478 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Start loading edits file http://master:8480/getJournal?jid=mycluster&segmentTxId=1511&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1511&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491
+2015-01-05 07:57:37,478 INFO org.apache.hadoop.hdfs.server.namenode.EditLogInputStream: Fast-forwarding stream 'http://master:8480/getJournal?jid=mycluster&segmentTxId=1511&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1511&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491' to transaction ID 648
+2015-01-05 07:57:37,478 INFO org.apache.hadoop.hdfs.server.namenode.EditLogInputStream: Fast-forwarding stream 'http://master:8480/getJournal?jid=mycluster&segmentTxId=1511&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491' to transaction ID 648
+2015-01-05 07:57:37,488 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Edits file http://master:8480/getJournal?jid=mycluster&segmentTxId=1511&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1511&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491 of size 30 edits # 2 loaded in 0 seconds
+2015-01-05 07:57:37,489 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Reading org.apache.hadoop.hdfs.server.namenode.RedundantEditLogInputStream@3a976378 expecting start txid #1513
+2015-01-05 07:57:37,489 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Start loading edits file http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1513&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://master:8480/getJournal?jid=mycluster&segmentTxId=1513&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491
+2015-01-05 07:57:37,489 INFO org.apache.hadoop.hdfs.server.namenode.EditLogInputStream: Fast-forwarding stream 'http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1513&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://master:8480/getJournal?jid=mycluster&segmentTxId=1513&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491' to transaction ID 648
+2015-01-05 07:57:37,489 INFO org.apache.hadoop.hdfs.server.namenode.EditLogInputStream: Fast-forwarding stream 'http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1513&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491' to transaction ID 648
+2015-01-05 07:57:37,493 INFO org.apache.hadoop.hdfs.server.namenode.FSImage: Edits file http://slave1:8480/getJournal?jid=mycluster&segmentTxId=1513&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491, http://master:8480/getJournal?jid=mycluster&segmentTxId=1513&storageInfo=-47%3A1209830671%3A0%3ACID-855e6a67-cc09-474f-9fe0-866a4219c491 of size 30 edits # 2 loaded in 0 seconds
+2015-01-05 07:57:37,494 INFO org.apache.hadoop.hdfs.server.namenode.NameCache: initialized with 0 entries 0 lookups
+2015-01-05 07:57:37,494 INFO org.apache.hadoop.hdfs.server.namenode.FSNamesystem: Finished loading FSImage in 4379 msecs
+2015-01-05 07:57:38,436 INFO org.apache.hadoop.hdfs.server.namenode.NameNode: RPC server is binding to master:4001
+2015-01-05 07:57:38,523 INFO org.apache.hadoop.ipc.Server: Starting Socket Reader #1 for port 4001
+2015-01-05 07:57:38,696 INFO org.apache.hadoop.hdfs.server.namenode.FSNamesystem: Registered FSNamesystemState MBean
+2015-01-05 07:57:38,714 WARN org.apache.hadoop.hdfs.server.common.Util: Path /usr/local/hadoop/dfs/name should be specified as a URI in configuration files. Please update hdfs configuration.
+2015-01-05 07:57:43,547 INFO org.apache.hadoop.hdfs.server.namenode.FSNamesystem: Number of blocks under construction: 1
+2015-01-05 07:57:43,584 INFO org.apache.hadoop.hdfs.server.namenode.FSNamesystem: Number of blocks under construction: 1
+2015-01-05 07:57:43,585 INFO org.apache.hadoop.hdfs.StateChange: STATE* Safe mode ON. 
+The reported blocks 0 needs additional 53 blocks to reach the threshold 0.9990 of total blocks 53.
+Safe mode will be turned off automatically
+2015-01-05 07:57:44,139 INFO org.apache.hadoop.ipc.Server: IPC Server Responder: starting
+2015-01-05 07:57:44,141 INFO org.apache.hadoop.ipc.Server: IPC Server listener on 4001: starting
+2015-01-05 07:57:44,208 INFO org.apache.hadoop.hdfs.server.namenode.NameNode: NameNode RPC up at: master/10.8.39.30:4001
+2015-01-05 07:57:44,209 INFO org.apache.hadoop.hdfs.server.namenode.FSNamesystem: Starting services required for standby state
+2015-01-05 07:57:44,212 INFO org.apache.hadoop.hdfs.server.namenode.ha.EditLogTailer: Will roll logs on active node at slave1/10.8.39.31:4001 every 120 seconds.
+2015-01-05 07:57:44,221 INFO org.apache.hadoop.hdfs.server.namenode.ha.StandbyCheckpointer: Starting standby checkpoint thread...
+Checkpointing active NN at slave1:4011
+Serving checkpoints at master/10.8.39.30:4011
+2015-01-05 07:57:45,596 INFO org.apache.hadoop.hdfs.StateChange: BLOCK* registerDatanode: from DatanodeRegistration(10.8.39.30, storageID=DS-780514263-10.8.39.30-50010-1420468094157, infoPort=50075, ipcPort=50020, storageInfo=lv=-47;cid=CID-855e6a67-cc09-474f-9fe0-866a4219c491;nsid=1209830671;c=0) storage DS-780514263-10.8.39.30-50010-1420468094157
+2015-01-05 07:57:45,598 INFO org.apache.hadoop.net.NetworkTopology: Adding a new node: /default-rack/10.8.39.30:50010
+2015-01-05 07:57:45,598 INFO org.apache.hadoop.hdfs.StateChange: BLOCK* registerDatanode: from DatanodeRegistration(10.8.39.31, storageID=DS-1125852120-10.8.39.31-50010-1420468094624, infoPort=50075, ipcPort=50020, storageInfo=lv=-47;cid=CID-855e6a67-cc09-474f-9fe0-866a4219c491;nsid=1209830671;c=0) storage DS-1125852120-10.8.39.31-50010-1420468094624
+2015-01-05 07:57:45,600 INFO org.apache.hadoop.net.NetworkTopology: Adding a new node: /default-rack/10.8.39.31:50010
+2015-01-05 07:57:45,601 INFO org.apache.hadoop.hdfs.StateChange: BLOCK* registerDatanode: from DatanodeRegistration(10.8.39.32, storageID=DS-1721406201-10.8.39.32-50010-1420364834582, infoPort=50075, ipcPort=50020, storageInfo=lv=-47;cid=CID-855e6a67-cc09-474f-9fe0-866a4219c491;nsid=1209830671;c=0) storage DS-1721406201-10.8.39.32-50010-1420364834582
+2015-01-05 07:57:45,601 INFO org.apache.hadoop.net.NetworkTopology: Adding a new node: /default-rack/10.8.39.32:50010
+2015-01-05 07:57:46,214 INFO org.apache.hadoop.hdfs.server.blockmanagement.BlockManager: BLOCK* processReport: Received first block report from 10.8.39.31:50010 after starting up or becoming active. Its block contents are no longer considered stale
+2015-01-05 07:57:46,214 INFO BlockStateChange: BLOCK* processReport: from DatanodeRegistration(10.8.39.31, storageID=DS-1125852120-10.8.39.31-50010-1420468094624, infoPort=50075, ipcPort=50020, storageInfo=lv=-47;cid=CID-855e6a67-cc09-474f-9fe0-866a4219c491;nsid=1209830671;c=0), blocks: 63, processing time: 2 msecs
+2015-01-05 07:57:46,227 INFO org.apache.hadoop.hdfs.StateChange: STATE* Safe mode extension entered. 
+The reported blocks 52 has reached the threshold 0.9990 of total blocks 53. The number of live datanodes 3 has reached the minimum number 0. Safe mode will be turned off automatically in 29 seconds.
+2015-01-05 07:57:46,228 INFO org.apache.hadoop.hdfs.server.blockmanagement.BlockManager: BLOCK* processReport: Received first block report from 10.8.39.30:50010 after starting up or becoming active. Its block contents are no longer considered stale
+2015-01-05 07:57:46,229 INFO org.apache.hadoop.hdfs.server.blockmanagement.BlockManager: BLOCK* processReport: Received first block report from 10.8.39.32:50010 after starting up or becoming active. Its block contents are no longer considered stale
+2015-01-05 07:57:46,229 INFO BlockStateChange: BLOCK* processReport: from DatanodeRegistration(10.8.39.32, storageID=DS-1721406201-10.8.39.32-50010-1420364834582, infoPort=50075, ipcPort=50020, storageInfo=lv=-47;cid=CID-855e6a67-cc09-474f-9fe0-866a4219c491;nsid=1209830671;c=0), blocks: 67, processing time: 1 msecs
+2015-01-05 07:57:46,231 INFO BlockStateChange: BLOCK* processReport: from DatanodeRegistration(10.8.39.30, storageID=DS-780514263-10.8.39.30-50010-1420468094157, infoPort=50075, ipcPort=50020, storageInfo=lv=-47;cid=CID-855e6a67-cc09-474f-9fe0-866a4219c491;nsid=1209830671;c=0), blocks: 71, processing time: 13 msecs
+2015-01-05 07:58:06,246 INFO org.apache.hadoop.hdfs.StateChange: STATE* Safe mode ON. 
+The reported blocks 53 has reached the threshold 0.9990 of total blocks 53. The number of live datanodes 3 has reached the minimum number 0. Safe mode will be turned off automatically in 9 seconds.
+2015-01-05 07:58:16,256 INFO org.apache.hadoop.hdfs.StateChange: STATE* Leaving safe mode after 43 secs
+2015-01-05 07:58:16,256 INFO org.apache.hadoop.hdfs.StateChange: STATE* Safe mode is OFF
+2015-01-05 07:58:16,256 INFO org.apache.hadoop.hdfs.StateChange: STATE* Network topology has 1 racks and 3 datanodes
+2015-01-05 07:58:16,256 INFO org.apache.hadoop.hdfs.StateChange: STATE* UnderReplicatedBlocks has 0 blocks
+
+
+
+
