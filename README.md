@@ -33,6 +33,8 @@ sleep 5
 ssh master "/usr/local/hadoop/sbin/start-yarn.sh"
 sleep 5
 
+/usr/local/etc/hadoop/sbin/start-all.sh
+
 #
 
 
