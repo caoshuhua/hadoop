@@ -35,6 +35,7 @@ sleep 5
 
 /usr/local/etc/hadoop/sbin/start-all.sh
 
+http://10.100.22.251:4011/dfshealth.jsp
 #
 
 
